@@ -10,6 +10,12 @@ Completed user stories:
  * [x] Required: Editing todo items
  * [x] Required: Persist todo items
 
+Extensions:
+
+ * [x] Optional: Persist todo items into SQLite
+ * [x] Optional: Use custom adapter
+ * [x] Optional: Use DialogFragment instead of Activity
+
 Walkthrough of all user stories:
 
 ![Video Walkthrough](todo_list_walkthrough.gif)
