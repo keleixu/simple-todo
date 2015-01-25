@@ -10,7 +10,7 @@ import android.widget.EditText;
 
 public class EditItemActivity extends ActionBarActivity {
     int position;
-    String todoName;
+    ToDoItem todoItem;
 
     private EditText editTextInput;
     private Button saveButton;
@@ -28,10 +28,10 @@ public class EditItemActivity extends ActionBarActivity {
         Intent i = getIntent();
         if (i != null) {
             editTextInput = (EditText)findViewById(R.id.list_edit_text_input);
-            todoName = (String)i.getExtras().get("todoName");
+            todoItem = (ToDoItem)i.getExtras().get("todoItem");
             position = (int)i.getExtras().get("position");
-            editTextInput.setText(todoName);
-            editTextInput.setSelection(todoName.length());
+            editTextInput.setText(todoItem.name);
+            editTextInput.setSelection(todoItem.name.length());
             editTextInput.requestFocus();
         }
     }

@@ -10,16 +10,15 @@ import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ListView;
 
-import org.apache.commons.io.FileUtils;
+import com.activeandroid.query.Select;
 
 
-import java.io.File;
-import java.io.IOException;
+import java.io.Serializable;
 import java.util.ArrayList;
 
 
 public class MainActivity extends ActionBarActivity {
-    private ArrayList<String> todoListItems = new ArrayList<String>();
+    private ArrayList<ToDoItem> todoListItems = new ArrayList<ToDoItem>();
     private Button addButton;
     private EditText textInput;
     private ListView listview;
@@ -38,8 +37,7 @@ public class MainActivity extends ActionBarActivity {
         readItems();
         listview = (ListView) findViewById(R.id.todo_list);
 
-        adapter = new ArrayAdapter<>(this,
-            android.R.layout.simple_list_item_1, todoListItems);
+        adapter = new ToDoItemAdapter(this, todoListItems);
         listview.setAdapter(adapter);
         listview.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
@@ -47,7 +45,7 @@ public class MainActivity extends ActionBarActivity {
                 long id) {
                 Intent i = new Intent(MainActivity.this, EditItemActivity.class);
                 i.putExtra("position", position);
-                i.putExtra("todoName", todoListItems.get(position));
+                i.putExtra("todoItem", (Serializable)todoListItems.get(position));
                 startActivityForResult(i, EDIT_ITEM_REQUEST_CODE);
             }
         });
@@ -62,10 +60,11 @@ public class MainActivity extends ActionBarActivity {
             @Override
             public void onClick(View v) {
                 String todoItemString = textInput.getText().toString();
-                todoListItems.add(todoItemString);
+                ToDoItem item = new ToDoItem(todoItemString);
+                item.save();
+                todoListItems.add(item);
                 adapter.notifyDataSetChanged();
                 textInput.setText("");
-                writeItems();
             }
         });
     }
@@ -75,32 +74,13 @@ public class MainActivity extends ActionBarActivity {
             @Override
             public boolean onItemLongClick(AdapterView<?> parent, View child, int position,
                 long id) {
+                ToDoItem item = todoListItems.get(position);
+                item.delete();
                 todoListItems.remove(position);
                 adapter.notifyDataSetChanged();
-                writeItems();
                 return true;
             }
         });
-    }
-
-    private void readItems() {
-        File filesDir = getFilesDir();
-        File todoFile = new File(filesDir, "todo.txt");
-        try {
-            todoListItems = new ArrayList<String>(FileUtils.readLines(todoFile));
-        } catch (IOException e) {
-            todoListItems = new ArrayList<String>();
-        }
-    }
-
-    private void writeItems() {
-        File filesDir = getFilesDir();
-        File todoFile = new File(filesDir, "todo.txt");
-        try {
-            FileUtils.writeLines(todoFile, todoListItems);
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
     }
 
     @Override
@@ -108,9 +88,15 @@ public class MainActivity extends ActionBarActivity {
         if (resultCode == RESULT_OK && requestCode == EDIT_ITEM_REQUEST_CODE) {
             String todoName = data.getExtras().getString("todoName");
             int position = data.getExtras().getInt("position");
-            todoListItems.set(position, todoName);
+            ToDoItem item = todoListItems.get(position);
+            item.name = todoName;
+            item.save();
             adapter.notifyDataSetChanged();
-            writeItems();
         }
+    }
+
+    private void readItems() {
+        todoListItems = new Select()
+            .from(ToDoItem.class).execute();
     }
 }
