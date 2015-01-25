@@ -2,6 +2,7 @@ package com.example.kelei.todolist;
 
 import android.content.Intent;
 import android.os.Bundle;
+import android.support.v4.app.FragmentManager;
 import android.support.v7.app.ActionBarActivity;
 import android.view.View;
 import android.widget.AdapterView;
@@ -13,11 +14,11 @@ import android.widget.ListView;
 import com.activeandroid.query.Select;
 
 
-import java.io.Serializable;
 import java.util.ArrayList;
 
 
-public class MainActivity extends ActionBarActivity {
+public class MainActivity extends ActionBarActivity implements
+    EditItemDialog.EditItemDialogListener {
     private ArrayList<ToDoItem> todoListItems = new ArrayList<ToDoItem>();
     private Button addButton;
     private EditText textInput;
@@ -43,10 +44,10 @@ public class MainActivity extends ActionBarActivity {
             @Override
             public void onItemClick(AdapterView<?> parent, View child, int position,
                 long id) {
-                Intent i = new Intent(MainActivity.this, EditItemActivity.class);
-                i.putExtra("position", position);
-                i.putExtra("todoItem", (Serializable)todoListItems.get(position));
-                startActivityForResult(i, EDIT_ITEM_REQUEST_CODE);
+                ToDoItem item = todoListItems.get(position);
+                FragmentManager fm = getSupportFragmentManager();
+                EditItemDialog editItemDialog = EditItemDialog.newInstance(item, position);
+                editItemDialog.show(fm, "fragment_edit_item");
             }
         });
         setupAddingToList();
@@ -98,5 +99,13 @@ public class MainActivity extends ActionBarActivity {
     private void readItems() {
         todoListItems = new Select()
             .from(ToDoItem.class).execute();
+    }
+
+    @Override
+    public void onFinishEditDialog(String todoName, int position) {
+        ToDoItem item = todoListItems.get(position);
+        item.name = todoName;
+        item.save();
+        adapter.notifyDataSetChanged();
     }
 }
